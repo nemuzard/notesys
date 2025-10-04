@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kama.notes.mapper.CollectionMapper">
+
+    <!-- 按主键：英文优先 -->
+    <select id="findById" resultType="com.kama.notes.model.entity.Collection">
+        SELECT
+            collection_id,
+            COALESCE(name_en, name) AS name,
+            description,
+            creator_id,
+            created_at,
+            updated_at
+        FROM collection
+        WHERE collection_id = #{collectionId}
+    </select>
+
+    <!-- 按创建者：英文优先 -->
+    <select id="findByCreatorId" resultType="com.kama.notes.model.entity.Collection">
+        SELECT
+            collection_id,
+            COALESCE(name_en, name) AS name,
+            description,
+            creator_id,
+            created_at,
+            updated_at
+        FROM collection
+        WHERE creator_id = #{creatorId}
+    </select>
+
+    <!-- 组合条件：英文优先 -->
+    <select id="findByIdAndCreatorId" resultType="com.kama.notes.model.entity.Collection">
+        SELECT
+            collection_id,
+            COALESCE(name_en, name) AS name,
+            description,
+            creator_id,
+            created_at,
+            updated_at
+        FROM collection
+        WHERE collection_id = #{collectionId}
+          AND creator_id   = #{creatorId}
+    </select>
+
+    <!-- 统计保持不变 -->
+    <select id="countByCreatorIdAndNoteId" resultType="java.lang.Integer">
+        SELECT COUNT(note_id)
+        FROM collection_note cn
+        LEFT JOIN collection c ON cn.collection_id = c.collection_id
+        WHERE c.creator_id = #{creatorId}
+          AND cn.note_id   = #{noteId}
+    </select>
+
+    <!-- 插入：仍写原中文列；如果你也想写英文名，可在实体里增加 nameEn 后再同时赋值 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="collectionId">
+        INSERT INTO collection (name, description, creator_id)
+        VALUES (#{name}, #{description}, #{creatorId})
+    </insert>
+
+    <!-- 更新：可选支持更新英文名 -->
+    <update id="update">
+        UPDATE collection
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="nameEn != null">name_en = #{nameEn},</if>
+            <if test="description != null">description = #{description},</if>
+        </set>
+        WHERE collection_id = #{collectionId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM collection
+        WHERE collection_id = #{collectionId}
+    </delete>
+</mapper>

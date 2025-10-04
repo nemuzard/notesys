@@ -1,0 +1,119 @@
+/* 消息中心自定义样式 */
+.message-page {
+  min-height: calc(100vh - 120px);
+}
+
+.message-tabs .ant-tabs-tab {
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.message-tabs .ant-tabs-tab-active {
+  background-color: #f0f9ff;
+  border-radius: 6px;
+}
+
+.message-item {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.message-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.message-item.unread {
+  position: relative;
+}
+
+.message-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 2px;
+}
+
+.message-avatar {
+  border: 2px solid #f0f0f0;
+  transition: border-color 0.2s ease;
+}
+
+.message-item:hover .message-avatar {
+  border-color: #1890ff;
+}
+
+.message-content {
+  line-height: 1.6;
+}
+
+.message-time {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.message-action-btn {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.message-item:hover .message-action-btn {
+  opacity: 1;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .message-page {
+    padding: 16px;
+  }
+
+  .message-tabs .ant-tabs-tab {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .message-item {
+    margin-bottom: 4px;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.message-item-animate {
+  animation: fadeInUp cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-duration: inherit;
+}
+
+/* 未读消息闪烁效果（废弃） */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.message-item.unread {
+  /* 不再有pulse动画，仅保留未读样式 */
+}
+
+.message-item-animate.message-item.unread {
+  animation: fadeInUp cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-duration: inherit;
+}

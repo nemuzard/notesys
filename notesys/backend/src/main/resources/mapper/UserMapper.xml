@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kama.notes.mapper.UserMapper">
+
+    <!-- 按账号登录/查询：返回英文优先 -->
+    <select id="findByAccount" resultType="com.kama.notes.model.entity.User">
+        SELECT
+            user_id,
+            account,
+            password,
+            COALESCE(username_en, username)     AS username,
+            gender,
+            birthday,
+            COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+            COALESCE(email_en, email)           AS email,
+            COALESCE(school_en, school)         AS school,
+            COALESCE(signature_en, signature)   AS signature,
+            is_admin,
+            is_banned,
+            last_login_at,
+            created_at,
+            updated_at
+        FROM user
+        WHERE account = #{account}
+    </select>
+
+    <!-- 插入：保持写原列；如需支持英文字段，后续在 DTO/SQL 里加可选 nameEn 等 -->
+    <insert id="insert" keyProperty="userId" useGeneratedKeys="true">
+        INSERT INTO user (
+            account, 
+            username, 
+            password,
+            email
+        ) VALUES (
+            #{account}, 
+            #{username},
+            #{password},
+            #{email}
+        )
+    </insert>
+
+    <!-- 主键查询：英文优先 -->
+    <select id="findById" resultType="com.kama.notes.model.entity.User">
+        SELECT
+            user_id,
+            account,
+            password,
+            COALESCE(username_en, username)     AS username,
+            gender,
+            birthday,
+            COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+            COALESCE(email_en, email)           AS email,
+            COALESCE(school_en, school)         AS school,
+            COALESCE(signature_en, signature)   AS signature,
+            is_admin,
+            is_banned,
+            last_login_at,
+            created_at,
+            updated_at
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 主键批量：英文优先 -->
+    <select id="findByIdBatch" resultType="com.kama.notes.model.entity.User">
+        <if test="userIds != null and userIds.size > 0">
+            SELECT
+                user_id,
+                account,
+                password,
+                COALESCE(username_en, username)     AS username,
+                gender,
+                birthday,
+                COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+                COALESCE(email_en, email)           AS email,
+                COALESCE(school_en, school)         AS school,
+                COALESCE(signature_en, signature)   AS signature,
+                is_admin,
+                is_banned,
+                last_login_at,
+                created_at,
+                updated_at
+            FROM user
+            WHERE user_id IN
+            <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+                #{userId}
+            </foreach>
+        </if>
+        <if test="userIds == null or userIds.size == 0">
+            SELECT
+                user_id,
+                account,
+                password,
+                COALESCE(username_en, username)     AS username,
+                gender,
+                birthday,
+                COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+                COALESCE(email_en, email)           AS email,
+                COALESCE(school_en, school)         AS school,
+                COALESCE(signature_en, signature)   AS signature,
+                is_admin,
+                is_banned,
+                last_login_at,
+                created_at,
+                updated_at
+            FROM user
+            WHERE 1 = 0
+        </if>
+    </select>
+
+    <!-- 组合查询 where：用户名/邮箱同时匹配中英 -->
+    <sql id="whereClause">
+        <where>
+            <if test="queryParams.userId != null">
+                AND user_id = #{queryParams.userId}
+            </if>
+            <if test="queryParams.account != null">
+                AND account LIKE CONCAT('%', #{queryParams.account}, '%')
+            </if>
+            <if test="queryParams.username != null">
+                AND (username LIKE CONCAT('%', #{queryParams.username}, '%')
+                     OR username_en LIKE CONCAT('%', #{queryParams.username}, '%'))
+            </if>
+            <if test="queryParams.isAdmin != null">
+                AND is_admin = #{queryParams.isAdmin}
+            </if>
+            <if test="queryParams.isBanned != null">
+                AND is_banned = #{queryParams.isBanned}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 列表：英文优先 -->
+    <select id="findByQueryParam" resultType="com.kama.notes.model.entity.User">
+        SELECT
+            user_id,
+            account,
+            password,
+            COALESCE(username_en, username)     AS username,
+            gender,
+            birthday,
+            COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+            COALESCE(email_en, email)           AS email,
+            COALESCE(school_en, school)         AS school,
+            COALESCE(signature_en, signature)   AS signature,
+            is_admin,
+            is_banned,
+            last_login_at,
+            created_at,
+            updated_at
+        FROM user
+        <include refid="whereClause"/>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByQueryParam" resultType="integer">
+        SELECT COUNT(*)
+        FROM user
+        <include refid="whereClause" />
+    </select>
+
+    <!-- 更新：可选支持英文列 -->
+    <update id="update" parameterType="com.kama.notes.model.dto.user.UpdateUserRequest">
+        UPDATE user
+        <set>
+            <if test="username != null">   username = #{username},</if>
+            <if test="usernameEn != null"> username_en = #{usernameEn},</if>
+            <if test="gender != null">     gender = #{gender},</if>
+            <if test="birthday != null">   birthday = #{birthday},</if>
+            <if test="avatarUrl != null">  avatar_url = #{avatarUrl},</if>
+            <if test="avatarUrlEn != null">avatar_url_en = #{avatarUrlEn},</if>
+            <if test="email != null">      email = #{email},</if>
+            <if test="emailEn != null">    email_en = #{emailEn},</if>
+            <if test="school != null">     school = #{school},</if>
+            <if test="schoolEn != null">   school_en = #{schoolEn},</if>
+            <if test="signature != null">  signature = #{signature},</if>
+            <if test="signatureEn != null">signature_en = #{signatureEn}</if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateLastLoginAt">
+        UPDATE user
+        SET last_login_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="getTodayLoginCount" resultType="integer">
+        SELECT COUNT(*) FROM user WHERE DATE(last_login_at) = CURDATE()
+    </select>
+
+    <select id="getTodayRegisterCount" resultType="integer">
+        SELECT COUNT(*) FROM user WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <select id="getTotalRegisterCount" resultType="integer">
+        SELECT COUNT(*) FROM user
+    </select>
+
+    <!-- 按邮箱：返回英文优先；精确匹配邮箱时仍以原列为主，可选 OR email_en -->
+    <select id="findByEmail" resultType="com.kama.notes.model.entity.User">
+        SELECT
+            user_id,
+            account,
+            password,
+            COALESCE(username_en, username)     AS username,
+            gender,
+            birthday,
+            COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+            COALESCE(email_en, email)           AS email,
+            COALESCE(school_en, school)         AS school,
+            COALESCE(signature_en, signature)   AS signature,
+            is_admin,
+            is_banned,
+            last_login_at,
+            created_at,
+            updated_at
+        FROM user
+        WHERE email = #{email} OR email_en = #{email}
+    </select>
+
+    <!-- 搜索：同时匹配 username/account/email 的中英；返回英文优先 -->
+    <select id="searchUsers" resultType="com.kama.notes.model.entity.User">
+        SELECT
+            user_id,
+            account,
+            password,
+            COALESCE(username_en, username)     AS username,
+            gender,
+            birthday,
+            COALESCE(avatar_url_en, avatar_url) AS avatar_url,
+            COALESCE(email_en, email)           AS email,
+            COALESCE(school_en, school)         AS school,
+            COALESCE(signature_en, signature)   AS signature,
+            is_admin,
+            is_banned,
+            last_login_at,
+            created_at,
+            updated_at
+        FROM user
+        WHERE 
+            username    LIKE CONCAT(#{keyword}, '%')
+            OR username_en LIKE CONCAT(#{keyword}, '%')
+            OR account  LIKE CONCAT(#{keyword}, '%')
+            OR email    LIKE CONCAT(#{keyword}, '%')
+            OR email_en LIKE CONCAT(#{keyword}, '%')
+        ORDER BY 
+            CASE 
+                WHEN username = #{keyword}    THEN 1
+                WHEN username_en = #{keyword} THEN 2
+                WHEN account  = #{keyword}    THEN 3
+                WHEN email    = #{keyword}    THEN 4
+                WHEN email_en = #{keyword}    THEN 5
+                WHEN username LIKE CONCAT(#{keyword}, '%')    THEN 6
+                WHEN username_en LIKE CONCAT(#{keyword}, '%') THEN 7
+                WHEN account  LIKE CONCAT(#{keyword}, '%')    THEN 8
+                WHEN email    LIKE CONCAT(#{keyword}, '%')    THEN 9
+                WHEN email_en LIKE CONCAT(#{keyword}, '%')    THEN 10
+                ELSE 11
+            END
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+</mapper>

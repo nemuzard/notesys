@@ -1,0 +1,132 @@
+/* 评论区样式 */
+.comment-list {
+  --comment-border-color: #e5e7eb;
+  --comment-bg-color: #fff;
+  --comment-hover-bg: #f9fafb;
+  --comment-text-primary: #111827;
+  --comment-text-secondary: #6b7280;
+  --comment-text-muted: #9ca3af;
+  --comment-accent: #3b82f6;
+  --comment-accent-hover: #2563eb;
+}
+
+.comment-item {
+  transition: all 0.2s ease;
+  /* 去除圆角、阴影、边框，仅保留底部分隔线 */
+  border-radius: 0;
+  border: none;
+  background: none;
+}
+
+.comment-reply {
+  position: relative;
+  /* 去除背景色和圆角 */
+  background: none;
+  border-radius: 0;
+}
+
+.comment-reply::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 20px;
+  width: 2px;
+  height: calc(100% - 20px);
+  background-color: var(--comment-border-color);
+}
+
+.comment-avatar {
+  border: none;
+  box-shadow: none;
+}
+
+.comment-username {
+  font-weight: 600;
+  color: var(--comment-text-primary);
+}
+
+.comment-time {
+  color: var(--comment-text-muted);
+  font-size: 0.75rem;
+}
+
+.comment-content {
+  line-height: 1.6;
+  color: var(--comment-text-primary);
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comment-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--comment-text-secondary);
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.comment-action-btn:hover {
+  color: var(--comment-accent);
+}
+
+.comment-like-btn.liked {
+  color: #ef4444;
+}
+
+.comment-reply-btn:hover {
+  color: var(--comment-accent);
+}
+
+.comment-reply-indicator {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0.75rem 0;
+}
+
+.comment-input-wrapper,
+.comment-input-header,
+.comment-input-body {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.comment-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--comment-text-muted);
+}
+
+.comment-loading {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--comment-text-muted);
+}
+
+/* 响应式设计 */
+@media (max-width: 640px) {
+  .comment-reply {
+    margin-left: 0.5rem;
+  }
+
+  .comment-reply::before {
+    left: -8px;
+  }
+
+  .comment-actions {
+    gap: 0.5rem;
+  }
+
+  .comment-action-btn {
+    font-size: 0.875rem;
+  }
+}

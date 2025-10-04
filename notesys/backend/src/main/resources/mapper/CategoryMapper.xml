@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kama.notes.mapper.CategoryMapper">
+
+    <!-- 单条插入 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="categoryId"
+            parameterType="com.kama.notes.model.entity.Category">
+        INSERT INTO category (name, parent_category_id)
+        VALUES (#{name}, #{parentCategoryId})
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="insertBatch" parameterType="com.kama.notes.model.entity.Category">
+        <if test="categories != null and categories.size > 0">
+            INSERT INTO category (name, parent_category_id)
+            VALUES
+            <foreach collection="categories" item="category" separator=",">
+                (#{category.name}, #{category.parentCategoryId})
+            </foreach>
+        </if>
+        <if test="categories == null or categories.size == 0">
+            SELECT 0
+        </if>
+    </insert>
+
+    <!-- 列表：英文优先 -->
+    <select id="categoryList" resultType="com.kama.notes.model.entity.Category">
+        SELECT
+            category_id,
+            COALESCE(name_en, name) AS name,
+            parent_category_id,
+            created_at,
+            updated_at
+        FROM category
+    </select>
+
+    <!-- 主键查询：英文优先  （修正参数名：categoryId） -->
+    <select id="findById" resultType="com.kama.notes.model.entity.Category">
+        SELECT
+            category_id,
+            COALESCE(name_en, name) AS name,
+            parent_category_id,
+            created_at,
+            updated_at
+        FROM category
+        WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- 主键批量查询：英文优先 -->
+    <select id="findByIdBatch" resultType="com.kama.notes.model.entity.Category">
+        <if test="categoryIds != null and categoryIds.size > 0">
+            SELECT
+                category_id,
+                COALESCE(name_en, name) AS name,
+                parent_category_id,
+                created_at,
+                updated_at
+            FROM category
+            WHERE category_id IN
+            <foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
+                #{categoryId}
+            </foreach>
+        </if>
+        <if test="categoryIds == null or categoryIds.size == 0">
+            SELECT
+                category_id,
+                COALESCE(name_en, name) AS name,
+                parent_category_id,
+                created_at,
+                updated_at
+            FROM category
+            WHERE 1 = 0
+        </if>
+    </select>
+
+    <!-- 按 id 或 parentId：英文优先 -->
+    <select id="findByIdOrParentId" resultType="com.kama.notes.model.entity.Category">
+        SELECT
+            category_id,
+            COALESCE(name_en, name) AS name,
+            parent_category_id,
+            created_at,
+            updated_at
+        FROM category
+        WHERE category_id = #{categoryId}
+           OR parent_category_id = #{categoryId}
+    </select>
+
+    <!-- 删除 -->
+    <delete id="deleteById">
+        DELETE FROM category WHERE category_id = #{categoryId}
+    </delete>
+
+    <delete id="deleteByIdBatch">
+        <if test="categoryIds != null and categoryIds.size > 0">
+            DELETE FROM category
+            WHERE category_id IN
+            <foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
+                #{categoryId}
+            </foreach>
+        </if>
+        <if test="categoryIds == null or categoryIds.size == 0">
+            DELETE FROM category WHERE 1 = 0
+        </if>
+    </delete>
+
+    <!-- 更新原中文名；如你也想维护英文名，可额外加 nameEn 字段 -->
+    <update id="update" parameterType="com.kama.notes.model.entity.Category">
+        UPDATE category
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="nameEn != null">name_en = #{nameEn},</if>
+            <if test="parentCategoryId != null">parent_category_id = #{parentCategoryId},</if>
+        </set>
+        WHERE category_id = #{categoryId}
+    </update>
+
+    <!-- 按名称查：既匹配中文也匹配英文 -->
+    <select id="findByName" resultType="com.kama.notes.model.entity.Category">
+        SELECT
+            category_id,
+            COALESCE(name_en, name) AS name,
+            parent_category_id,
+            created_at,
+            updated_at
+        FROM category
+        WHERE name = #{categoryName}
+           OR name_en = #{categoryName}
+    </select>
+
+</mapper>

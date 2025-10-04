@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kama.notes.mapper.CommentMapper">
+
+    <!-- 统一选择列：content 英文优先 -->
+    <sql id="selectFields">
+        comment_id,
+        note_id,
+        author_id,
+        parent_id,
+        COALESCE(content_en, content) AS content,
+        like_count,
+        reply_count,
+        created_at,
+        updated_at
+    </sql>
+
+    <!-- 评论结果映射（不改名） -->
+    <resultMap id="commentMap" type="com.kama.notes.model.entity.Comment">
+        <id     property="commentId"  column="comment_id"/>
+        <result property="noteId"     column="note_id"/>
+        <result property="authorId"   column="author_id"/>
+        <result property="parentId"   column="parent_id"/>
+        <result property="content"    column="content"/>
+        <result property="likeCount"  column="like_count"/>
+        <result property="replyCount" column="reply_count"/>
+        <result property="createdAt"  column="created_at"/>
+        <result property="updatedAt"  column="updated_at"/>
+    </resultMap>
+
+    <!-- 插入：仍写原中文列 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO comment (
+            note_id, author_id, parent_id, content,
+            like_count, reply_count, created_at, updated_at
+        ) VALUES (
+            #{noteId}, #{authorId}, #{parentId}, #{content},
+            #{likeCount}, #{replyCount}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新 -->
+    <update id="update">
+        UPDATE comment
+        <set>
+            <if test="content != null">     content     = #{content},</if>
+            <if test="likeCount != null">   like_count  = #{likeCount},</if>
+            <if test="replyCount != null">  reply_count = #{replyCount},</if>
+            updated_at = CURRENT_TIMESTAMP
+        </set>
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteById">
+        DELETE FROM comment WHERE comment_id = #{commentId}
+    </delete>
+
+    <!-- 根据ID查询：英文优先 -->
+    <select id="findById" resultMap="commentMap">
+        SELECT <include refid="selectFields"/>
+        FROM comment
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <!-- 根据笔记ID查询：英文优先 -->
+    <select id="findByNoteId" resultMap="commentMap">
+        SELECT <include refid="selectFields"/>
+        FROM comment
+        WHERE note_id = #{noteId}
+    </select>
+
+    <!-- 查询评论列表：英文优先 -->
+    <select id="findByQueryParam" resultMap="commentMap">
+        SELECT <include refid="selectFields"/>
+        FROM comment
+        <where>
+            <if test="params.noteId != null">   AND note_id   = #{params.noteId}</if>
+            <if test="params.authorId != null"> AND author_id = #{params.authorId}</if>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- 统计数量（不涉及内容列） -->
+    <select id="countByQueryParam" resultType="int">
+        SELECT COUNT(*)
+        FROM comment
+        <where>
+            <if test="params.noteId != null">   AND note_id   = #{params.noteId}</if>
+            <if test="params.parentId != null"> AND parent_id = #{params.parentId}</if>
+            <if test="params.authorId != null"> AND author_id = #{params.authorId}</if>
+        </where>
+    </select>
+
+    <!-- 点赞/取消点赞/回复计数 -->
+    <update id="incrementLikeCount">
+        UPDATE comment SET like_count = like_count + 1 WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="decrementLikeCount">
+        UPDATE comment SET like_count = like_count - 1 WHERE comment_id = #{commentId} AND like_count > 0
+    </update>
+
+    <update id="incrementReplyCount">
+        UPDATE comment SET reply_count = reply_count + 1 WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="decrementReplyCount">
+        UPDATE comment SET reply_count = reply_count - 1 WHERE comment_id = #{commentId} AND reply_count > 0
+    </update>
+
+</mapper>
